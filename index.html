@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>School Tax Rates</title>
+
+    <!-- External -->
+    <script type="text/javascript" src="https://pym.nprapps.org/pym.v1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"
+        integrity="sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"
+        integrity="sha512-M7nHCiNUOwFt6Us3r8alutZLm9qMt4s9951uo8jqO4UwJ1hziseL6O3ndFyigx6+LREfZqnhHxYjKRJ8ZQ69DQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script src="https://kit.fontawesome.com/c133de535f.js" crossorigin="anonymous"></script>
+
+    <!-- Fonts -->
+    <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet' type='text/css'>
+
+    <style>
+        /* Styled to match Grove  */
+
+        body {
+            font-family: "Poppins", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
+            letter-spacing: 0.08px;
+            word-spacing: 0.4px;
+            line-height: 1.5;
+            max-width: 700px;
+        }
+    </style>
+
+
+
+
+
+    <style>
+        #logo_img {
+            height: 50px;
+            filter: drop-shadow(1px 1px 2px black)
+        }
+
+
+        #container {
+            max-width: 700px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+
+        @media all and (max-width: 500px) {
+            #container {
+                flex-direction: column
+            }
+        }
+
+
+
+
+        #leaflet {
+            font-family: Poppins;
+            z-index: 0;
+            max-width: 500px;
+            flex: 1 auto;
+        }
+
+        #panel {
+            min-height: 200px;
+            flex: 2 auto;
+            min-width: 150px;
+            padding: 10px;
+            text-align: center;
+            margin: auto;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #panel h1, h2, h3 {
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        #panel table {
+            margin: auto;
+            width: 75%;
+        }
+
+        #return_button {
+            cursor:pointer;
+            color: green;
+        }
+
+        #return_button :hover {
+            color: #b1f000;
+        }
+
+
+
+
+
+        .tooltip h3 {
+            margin-top: 0px;
+            margin-bottom: 0px; 
+        }
+
+
+
+
+
+
+
+
+
+
+
+        .legend {
+            line-height: 18px;
+            color: #555;
+            background: white;
+            padding: 6px 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2)
+        }
+
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 1;
+        }
+
+        *,
+        *:focus,
+        *:hover {
+            outline: none;
+        }
+
+        .caption {
+            font-size: 12px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <script>
+
+        const starter_text = `<h2>Homestead Tax Rates 2023-2024</h2>Click on a town for more information.`
+
+        function place_starter_text() {
+            var foo = d3.selectAll("#panel")
+            foo.html(starter_text)
+        }
+
+        async function createMap() {
+            const data = await d3.csv("data/FY24_25_tax_rates.csv")
+            const districts_data = await d3.json("data/merged_villages.json")
+            const districts = districts_data.features
+            console.log(districts)
+            console.log(data)
+            place_starter_text()
+            const map = L.map("leaflet", {
+                maxBounds: [[45.6827279959561, -74.60342861162103], [[42.13963625461821, -70.15557545763363]]],
+                minZoom: 8,
+                maxBoundsViscosity: 1,
+            }).setView(
+                [43.99668264203332, -72.44535781827701],
+                8
+            );
+            L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+
+            }).addTo(map);
+
+            map.getRenderer(map).options.padding = 100;
+
+            console.log(data.filter(d => d.Town == "Starksboro")[0])
+
+            const color = d3.scaleSequential(d3.interpolateGreens).domain(d3.extent(data.filter(d => d["District Rate"] != ""), d => d["District Rate"]))
+
+            console.log("CLA-Adjusted:", d3.extent(data.filter(d => d["2024_homestead"] != " "), d => d["2024_homestead"]))
+            console.log("Non-CLA-Adjusted:", d3.extent(data.filter(d => d["District Rate"] != ""), d => d["District Rate"]))
+
+            var towns_layer = L.geoJSON(districts, {
+                style: function (geoJsonFeature) {
+                    const town_data = data.filter(d => d.Town == geoJsonFeature.properties["TOWNNAMEMC"])[0]["2024_homestead"]
+                    return {
+
+                        fillColor: town_data == " " ? "black" : color(town_data),
+                        fillOpacity: 1,
+                        stroke: true,
+                        color: "black",
+                        weight: 1
+                    }
+                }
+            }).bindTooltip(function (e) {
+                let town_name = e.feature.properties["TOWNNAMEMC"]
+                let town_data = data.filter(d => d.Town == town_name)[0]
+                return town_data["District Rate"] == "" ? `<h3>${town_name}</h3>
+                ${town_data["Town"]} has not yet approved a budget.`
+ : `<h3>${town_name}</h3><b>Unadjusted rate:</b> ${town_data["District Rate"]}`
+            }, 
+        {
+           className: "tooltip" 
+        }).addTo(map)
+
+
+            towns_layer.on("click", function (event) {
+                map.fitBounds(event.layer.getBounds())
+                let panel = d3.select("#panel")
+                let town_geo = event.layer.feature.properties
+                let town_data = data.filter(d => d.Town == town_geo["TOWNNAMEMC"])[0]
+
+                console.log(town_geo)
+                console.log(town_data)
+                panel.html(town_data["2024 Reappraisal"] == "Yes" ?
+                    `Reappraisal text<br><div id="return_button"><u>Return to map</u></div>` :
+                    town_data["2024_homestead"] == " " ? `<h1>${town_geo["TOWNNAMEMC"]}</h1>${town_data["Town"]} has not yet appoved a budget.<div id="return_button"><u>Return to map</u></div>`:
+                    `<h1>${town_geo["TOWNNAMEMC"]}</h1>
+                The tax rate in ${town_geo["TOWNNAMEMC"]} <b>${town_data["homestead_change"].substring(0, 1) == "-" ? `<span style="color:green">decreased ${town_data["homestead_change"].substring(1)}</span>` : `<span style="color:red">increased ${town_data["homestead_change"]}</span>`}</b> between 2023 and 2024.
+                <br><table>
+                    <tr>
+                        <th><h3>2023</h3></th>
+                        <th><h3>2024</h3></th>
+                        </tr>
+                    <tr>
+                        <td>${town_data["2023_homestead"]}</td>
+                        <td>${town_data["2024_homestead"]}</td>
+                        </tr>
+                    </table>
+                    <div id="return_button"><u>Return to map</u></div>
+                `)
+                d3.select("#return_button").on("click", function(event) {
+                    map.flyTo([43.99668264203332, -72.44535781827701], 8, {
+                        duration:.1
+                    })
+                    panel.html(starter_text)})
+            }).on("mouseover", function (e) {
+                var layer = e.layer;
+                layer.setStyle({
+                    weight: 3,
+                    color: "white"
+                })
+                layer.bringToFront();
+            }).on("mouseout", function (e) {
+                towns_layer.resetStyle(e.layer)
+            })
+
+
+        }
+
+        createMap()
+    </script>
+    <div id="container">
+        <div id="panel"></div>
+        <div id="leaflet" style="min-height: 500px; max-height: 800px; width: 100%"></div>
+    </div>
+    <div class="caption">Data Source: <a href="https://tax.vermont.gov/property/education-property-tax-rates">VT Department of Taxes<a> | &copy; <a
+                href="https://stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a
+                href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a
+                href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> | <i>Corey Dockser /
+                Vermont Public </i>
+            </div>
+
+            <script>
+                window.onload = function () {
+                    pymChild = new pym.Child({});
+                    pym.Child({ polling: 500 });
+                };
+            </script>
+</body>
+
+</html>
