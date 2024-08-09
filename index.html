@@ -108,6 +108,16 @@
             margin-bottom: 0px; 
         }
 
+        .tooltip {
+            width: 150px;
+            text-wrap: wrap;
+        }
+        
+
+
+        
+        
+
 
 
 
@@ -167,11 +177,13 @@
             place_starter_text()
             const map = L.map("leaflet", {
                 maxBounds: [[45.6827279959561, -74.60342861162103], [[42.13963625461821, -70.15557545763363]]],
-                minZoom: 8,
+                minZoom: 7,
                 maxBoundsViscosity: 1,
+                zoomSnap: .5,
+                zoomDelta: .5
             }).setView(
                 [43.99668264203332, -72.44535781827701],
-                8
+                7.5
             );
             L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
 
@@ -179,12 +191,14 @@
 
             map.getRenderer(map).options.padding = 100;
 
-            console.log(data.filter(d => d.Town == "Starksboro")[0])
+            
+            const homestead_change = d3.extent(data.filter(d => d["homestead_change"] != "#VALUE!"), d => parseFloat(d["homestead_change"]))
 
+            console.log(homestead_change)
+            
             const color = d3.scaleSequential(d3.interpolateGreens).domain(d3.extent(data.filter(d => d["District Rate"] != ""), d => d["District Rate"]))
+            const diff_color = d3.scaleDiverging(d3.interpolateRdBu).domain([homestead_change[1], 0, homestead_change[0]])
 
-            console.log("CLA-Adjusted:", d3.extent(data.filter(d => d["2024_homestead"] != " "), d => d["2024_homestead"]))
-            console.log("Non-CLA-Adjusted:", d3.extent(data.filter(d => d["District Rate"] != ""), d => d["District Rate"]))
 
             var towns_layer = L.geoJSON(districts, {
                 style: function (geoJsonFeature) {
@@ -209,8 +223,8 @@
            className: "tooltip" 
         }).addTo(map)
 
-
-            towns_layer.on("click", function (event) {
+        function onclick(layer) {
+            layer.on("click", function (event) {
                 map.fitBounds(event.layer.getBounds())
                 let panel = d3.select("#panel")
                 let town_geo = event.layer.feature.properties
@@ -248,8 +262,49 @@
                 })
                 layer.bringToFront();
             }).on("mouseout", function (e) {
-                towns_layer.resetStyle(e.layer)
+                layer.resetStyle(e.layer)
             })
+
+        }
+
+            onclick(towns_layer)
+            // two
+            var difference_layer = L.geoJSON(districts, {
+                style: function (geoJsonFeature) {
+                    const town_data = data.filter(d => d.Town == geoJsonFeature.properties["TOWNNAMEMC"])[0]
+                    return {
+                       
+                        fillColor: town_data["2024 Reappraisal"] == "Yes" ? "black" : diff_color(parseFloat(town_data["homestead_change"])),
+                        fillOpacity: 1,
+                        stroke: true,
+                        color: "black",
+                        weight: 1
+                    }
+                }
+            }).bindTooltip(function (e) {
+                let town_name = e.feature.properties["TOWNNAMEMC"]
+                let town_data = data.filter(d => d.Town == town_name)[0]
+                return town_data["District Rate"] == "" ? `<h3>${town_name}</h3>
+                ${town_data["Town"]} has not yet approved a budget.`
+ : 
+ town_data["2024 Reappraisal"] == "Yes" ? `<h3>${town_name}</h3>
+                ${town_data["Town"]} underwent a reappraisal in 2024, as such the numbers are not comparable.`: `<h3>${town_name}</h3><b>% difference between 2023 and 2024:</b> ${town_data["homestead_change"]}`
+            }, 
+        {
+           className: "tooltip",
+          
+        }).addTo(map)
+
+
+            onclick(difference_layer)
+
+            var layers = {
+                "CLA" : towns_layer,
+                "Difference" : difference_layer,
+            }
+            var layerControl = L.control.layers(layers, {}, {
+                position:"bottomleft"
+            }).addTo(map)
 
 
         }
