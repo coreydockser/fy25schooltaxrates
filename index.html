@@ -168,6 +168,8 @@
             foo.html(starter_text)
         }
 
+        var selection = "Starter"
+
         async function createMap() {
             const data = await d3.csv("data/FY24_25_tax_rates.csv")
             const districts_data = await d3.json("data/merged_villages.json")
@@ -200,38 +202,23 @@
             const diff_color = d3.scaleDiverging(d3.interpolateRdBu).domain([homestead_change[1], 0, homestead_change[0]])
 
 
-            var towns_layer = L.geoJSON(districts, {
-                style: function (geoJsonFeature) {
-                    const town_data = data.filter(d => d.Town == geoJsonFeature.properties["TOWNNAMEMC"])[0]["2024_homestead"]
-                    return {
-
-                        fillColor: town_data == " " ? "black" : color(town_data),
-                        fillOpacity: 1,
-                        stroke: true,
-                        color: "black",
-                        weight: 1
-                    }
-                }
-            }).bindTooltip(function (e) {
-                let town_name = e.feature.properties["TOWNNAMEMC"]
-                let town_data = data.filter(d => d.Town == town_name)[0]
-                return town_data["District Rate"] == "" ? `<h3>${town_name}</h3>
-                ${town_data["Town"]} has not yet approved a budget.`
- : `<h3>${town_name}</h3><b>Unadjusted rate:</b> ${town_data["District Rate"]}`
-            }, 
-        {
-           className: "tooltip" 
-        }).addTo(map)
-
+            
         function onclick(layer) {
             layer.on("click", function (event) {
-                map.fitBounds(event.layer.getBounds())
+                
                 let panel = d3.select("#panel")
                 let town_geo = event.layer.feature.properties
+                selection = town_geo["TOWNNAMEMC"]
                 let town_data = data.filter(d => d.Town == town_geo["TOWNNAMEMC"])[0]
-
                 console.log(town_geo)
                 console.log(town_data)
+                layer.resetStyle()
+                event.layer.bringToFront()
+                event.layer.setStyle({
+                    weight: 5,
+                    color: "white"
+                })
+                
                 panel.html(town_data["2024 Reappraisal"] == "Yes" ?
                     `Reappraisal text<br><div id="return_button"><u>Return to map</u></div>` :
                     town_data["2024_homestead"] == " " ? `<h1>${town_geo["TOWNNAMEMC"]}</h1>${town_data["Town"]} has not yet appoved a budget.<div id="return_button"><u>Return to map</u></div>`:
@@ -256,18 +243,23 @@
                     panel.html(starter_text)})
             }).on("mouseover", function (e) {
                 var layer = e.layer;
-                layer.setStyle({
+                if (selection != layer.feature.properties["TOWNNAMEMC"]) {
+                    layer.setStyle({
                     weight: 3,
                     color: "white"
                 })
-                layer.bringToFront();
+                }
+                
+               
             }).on("mouseout", function (e) {
+                if (selection != e.layer.feature.properties["TOWNNAMEMC"]) {
                 layer.resetStyle(e.layer)
+                }
             })
 
         }
 
-            onclick(towns_layer)
+        
             // two
             var difference_layer = L.geoJSON(districts, {
                 style: function (geoJsonFeature) {
@@ -298,13 +290,7 @@
 
             onclick(difference_layer)
 
-            var layers = {
-                "CLA" : towns_layer,
-                "Difference" : difference_layer,
-            }
-            var layerControl = L.control.layers(layers, {}, {
-                position:"bottomleft"
-            }).addTo(map)
+        
 
 
         }
