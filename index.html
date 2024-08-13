@@ -145,6 +145,7 @@
         }
 
 
+        
 
 
 
@@ -164,6 +165,19 @@
             float: left;
             margin-right: 6px;
             opacity: 1;
+        }
+
+        #reappraised {
+            width: 12px;
+            height: 12px;
+            margin-top: 5px;
+            border-style: solid;
+            border-width: 3px;
+            border-color: #b1f000
+        }
+
+        #reappraisedtext {
+            line-height: 28px;
         }
 
         *,
@@ -245,7 +259,9 @@
                     })
 
                     panel.html(town_data["2024 Reappraisal"] == "Yes" ?
-                        `<h1>${town_geo["TOWNNAMEMC"]}</h1>${town_data["Town"]} underwent a reappraisal in 2024, as such its new tax rate is not comparable to the old one.<h3>2024</h3>${town_data["2024_homestead"]}<div class="per" style="margin-top:8px"><b>per $100,000</b></div>` :
+                        `<h1>${town_geo["TOWNNAMEMC"]}</h1>
+                        The taxes paid by the median home in ${town_data["Town"]} <b>${town_data["Median Tax Increase"].substring(0, 1) == "-" ? `<span style="color:green">decreased ${town_data["Median Tax Increase"].substring(1)}</span>` : `<span style="color:red">increased ${town_data["Median Tax Increase"]}</span>`}</b> from 2023 to 2024.
+                        <h3>2024</h3>${town_data["2024_homestead"]}<div class="per" style="margin-top:8px"><b>per $100 of property value</b></div>` :
                         town_data["2024_homestead"] == " " ? `<h1>${town_geo["TOWNNAMEMC"]}</h1>${town_data["Town"]} has not yet appoved a budget.` :
                             `<div><h1>${town_geo["TOWNNAMEMC"]}</h1>
                 The tax rate in ${town_geo["TOWNNAMEMC"]} <b>${town_data["homestead_change"].substring(0, 1) == "-" ? `<span style="color:green">decreased ${town_data["homestead_change"].substring(1)}</span>` : `<span style="color:red">increased ${town_data["homestead_change"]}</span>`}</b> between 2023 and 2024.
@@ -259,8 +275,8 @@
                         <td>${town_data["2024_homestead"]}</td>
                         </tr>
                         <tr>
-                    <td><div class="per"><b>per $100,000</b></div></td>
-                    <td><div class="per"><b>per $100,000</b></div></td>
+                    <td><div class="per"><b>per $100 of property value</b></div></td>
+                    <td><div class="per"><b>per $100 of property value</b></div></td>
                         </tr>
                     </table></div>
                     
@@ -290,11 +306,12 @@
                     const town_data = data.filter(d => d.Town == geoJsonFeature.properties["TOWNNAMEMC"])[0]
                     return {
 
-                        fillColor: town_data["2024 Reappraisal"] == "Yes" ? "black" : diff_color(parseFloat(town_data["homestead_change"])),
+                        fillColor: town_data["2024 Reappraisal"] == "Yes" && town_data["Median Tax Increase"] == ""? "black" : town_data["Median Tax Increase"] == "" ? diff_color(parseFloat(town_data["homestead_change"])) : diff_color(parseFloat(town_data["Median Tax Increase"])),
                         fillOpacity: 1,
                         stroke: true,
-                        color: "black",
+                        color: town_data["Median Tax Increase"] != "" ? "#b1f000" : "black",
                         weight: 1
+
                     }
                 }
             }).bindTooltip(function (e) {
@@ -304,16 +321,18 @@
                 ${town_data["Town"]} has not yet approved a budget.`
                     :
                     town_data["2024 Reappraisal"] == "Yes" ? `<h3>${town_name}</h3>
-                ${town_data["Town"]} underwent a reappraisal in 2024, as such the numbers are not comparable.` : `<h3>${town_name}</h3><b>% difference between 2023 and 2024:</b> ${town_data["homestead_change"]}`
+                <i>Reappraised in 2024</i>
+                <br><b>% difference in tax on median home between 2023 and 2024:</b> ${town_data["Median Tax Increase"]}` : `<h3>${town_name}</h3><b>% difference between 2023 and 2024:</b> ${town_data["homestead_change"]}`
             },
                 {
                     className: "tooltip",
 
                 }).addTo(map)
 
+            
 
             onclick(difference_layer)
-
+            
             var legend = L.control({ position: 'bottomright' });
 
             legend.onAdd = function (map) {
@@ -335,7 +354,9 @@
                 }*/
 
                 div.innerHTML += `
-    <i style="background:black"></i> Not comparable`
+    <i style="background:black"></i> No budget`
+
+                div.innerHTML += `<br><i id="reappraised"></i><span id="reappraisedtext">Reappraised in 2024</span>`
 
                 return div;
             };
