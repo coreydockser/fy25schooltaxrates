@@ -197,7 +197,7 @@
 
     <script>
 
-        const starter_text = `<div><h2>Homestead Tax Rates 2023-2024</h2>Click on a town for more information.<br>Towns which underwent reappraisals in 2024 use estimated values based on preliminary data.</div>`
+        const starter_text = `<div><h2>Homestead Tax Rates FY2024-2025</h2>Click on a town for more information.<br>Towns which underwent reappraisals in 2024 use estimated values based on preliminary data.</div>`
 
         function place_starter_text() {
             var foo = d3.selectAll("#panel")
@@ -260,15 +260,15 @@
 
                     panel.html(town_geo["TOWNNAME"] == "PUTNEY" ? `<h1>${town_geo["TOWNNAMEMC"]}</h1>Preliminary tax data for Putney was not available.`: town_data["2024 Reappraisal"] == "Yes" ?
                         `<h1>${town_geo["TOWNNAMEMC"]}</h1>
-                        The taxes paid by the median home in ${town_data["Town"]} <b>${town_data["Median Tax Increase"].substring(0, 1) == "-" ? `<span style="color:green">decreased ${town_data["Median Tax Increase"].substring(1)}</span>` : `<span style="color:red">increased ${town_data["Median Tax Increase"]}</span>`}</b> from 2023 to 2024.
+                        The taxes paid by the median home in ${town_data["Town"]} <b>${town_data["Median Tax Increase"].substring(0, 1) == "-" ? `<span style="color:green">decreased ${town_data["Median Tax Increase"].substring(1)}</span>` : `<span style="color:red">increased ${town_data["Median Tax Increase"]}</span>`}</b> from FY2024 to FY2025.
                         <h3>2024</h3>${town_data["2024_homestead"]}<div class="per" style="margin-top:8px"><b>per $100 of property value</b></div>` :
                         town_data["2024_homestead"] == " " ? `<h1>${town_geo["TOWNNAMEMC"]}</h1>${town_data["Town"]} has not yet appoved a budget.` :
                             `<div><h1>${town_geo["TOWNNAMEMC"]}</h1>
-                The tax rate in ${town_geo["TOWNNAMEMC"]} <b>${town_data["homestead_change"].substring(0, 1) == "-" ? `<span style="color:green">decreased ${town_data["homestead_change"].substring(1)}</span>` : `<span style="color:red">increased ${town_data["homestead_change"]}</span>`}</b> between 2023 and 2024.
+                The tax rate in ${town_geo["TOWNNAMEMC"]} <b>${town_data["homestead_change"].substring(0, 1) == "-" ? `<span style="color:green">decreased ${town_data["homestead_change"].substring(1)}</span>` : `<span style="color:red">increased ${town_data["homestead_change"]}</span>`}</b> between FY2024 and FY2025.
                 <br><table>
                     <tr>
-                        <th><h3>2023</h3></th>
-                        <th><h3>2024</h3></th>
+                        <th><h3>FY2024</h3></th>
+                        <th><h3>FY2025</h3></th>
                         </tr>
                     <tr>
                         <td>${town_data["2023_homestead"]}</td>
@@ -322,7 +322,7 @@
                     :
                     town_data["2024 Reappraisal"] == "Yes" ? `<h3>${town_name}</h3>
                 <i>Reappraised in 2024</i>
-                <br><b>% difference in tax on median home between 2023 and 2024:</b> ${town_data["Median Tax Increase"]}` : `<h3>${town_name}</h3><b>% difference between 2023 and 2024:</b> ${town_data["homestead_change"]}`
+                <br><b>% difference in tax on median home between FY24 and FY25:</b> ${town_data["Median Tax Increase"]}` : `<h3>${town_name}</h3><b>% difference between FY24 and FY25:</b> ${town_data["homestead_change"]}`
             },
                 {
                     className: "tooltip",
