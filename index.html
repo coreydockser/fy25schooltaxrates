@@ -64,7 +64,7 @@
             flex-direction: column;
         }
 
-        
+
 
         @media all and (max-width: 500px) {
             #container {
@@ -72,8 +72,8 @@
             }
 
             #panel {
-                width:300px;
-                height: 220px; 
+                width: 300px;
+                height: 220px;
             }
         }
 
@@ -87,9 +87,11 @@
             flex: 1 auto;
         }
 
-        
 
-        #panel h1, h2, h3 {
+
+        #panel h1,
+        h2,
+        h3 {
             margin-top: 0px;
             margin-bottom: 0px;
         }
@@ -100,7 +102,7 @@
         }
 
         #return_button {
-            cursor:pointer;
+            cursor: pointer;
             color: green;
         }
 
@@ -114,24 +116,33 @@
 
         .tooltip h3 {
             margin-top: 0px;
-            margin-bottom: 0px; 
+            margin-bottom: 0px;
         }
 
         .tooltip {
             width: 150px;
             text-wrap: wrap;
         }
-        
 
 
-        
+
+
         .per {
             font-size: 14px;
         }
 
 
 
+        #gradient {
+            height: 18px;
+            width: 100%;
+            background-image: linear-gradient(to left,#ef8a62,#f7f7f7,#67a9cf) 
+        }
 
+        #gradient-text {
+            display:flex;
+            justify-content: space-between;
+        }
 
 
 
@@ -151,7 +162,7 @@
             width: 18px;
             height: 18px;
             float: left;
-            margin-right: 8px;
+            margin-right: 6px;
             opacity: 1;
         }
 
@@ -204,36 +215,35 @@
 
             map.getRenderer(map).options.padding = 100;
 
-            
+
             const homestead_change = d3.extent(data.filter(d => d["homestead_change"] != "#VALUE!"), d => parseFloat(d["homestead_change"]))
 
             console.log(homestead_change)
-            
-            const color = d3.scaleSequential(d3.interpolateGreens).domain(d3.extent(data.filter(d => d["District Rate"] != ""), d => d["District Rate"]))
-            const diff_color = d3.scaleDiverging(d3.interpolateRdBu).domain([homestead_change[1], 0, homestead_change[0]])
+
+            const diff_color = d3.scaleDiverging(d3.interpolateRdBu).domain([30, 0, -30])
 
 
-            
-        function onclick(layer) {
-            layer.on("click", function (event) {
-                
-                let panel = d3.select("#panel")
-                let town_geo = event.layer.feature.properties
-                selection = town_geo["TOWNNAMEMC"]
-                let town_data = data.filter(d => d.Town == town_geo["TOWNNAMEMC"])[0]
-                console.log(town_geo)
-                console.log(town_data)
-                layer.resetStyle()
-                event.layer.bringToFront()
-                event.layer.setStyle({
-                    weight: 5,
-                    color: "white"
-                })
-                
-                panel.html(town_data["2024 Reappraisal"] == "Yes" ?
-                    `<h1>${town_geo["TOWNNAMEMC"]}</h1>${town_data["Town"]} underwent a reappraisal in 2024, as such its new tax rate is not comparable to the old one.<h3>2024</h3>${town_data["2024_homestead"]}<div class="per" style="margin-top:8px"><b>per $100,000</b></div>` :
-                    town_data["2024_homestead"] == " " ? `<h1>${town_geo["TOWNNAMEMC"]}</h1>${town_data["Town"]} has not yet appoved a budget.`:
-                    `<div><h1>${town_geo["TOWNNAMEMC"]}</h1>
+
+            function onclick(layer) {
+                layer.on("click", function (event) {
+
+                    let panel = d3.select("#panel")
+                    let town_geo = event.layer.feature.properties
+                    selection = town_geo["TOWNNAMEMC"]
+                    let town_data = data.filter(d => d.Town == town_geo["TOWNNAMEMC"])[0]
+                    console.log(town_geo)
+                    console.log(town_data)
+                    layer.resetStyle()
+                    event.layer.bringToFront()
+                    event.layer.setStyle({
+                        weight: 5,
+                        color: "white"
+                    })
+
+                    panel.html(town_data["2024 Reappraisal"] == "Yes" ?
+                        `<h1>${town_geo["TOWNNAMEMC"]}</h1>${town_data["Town"]} underwent a reappraisal in 2024, as such its new tax rate is not comparable to the old one.<h3>2024</h3>${town_data["2024_homestead"]}<div class="per" style="margin-top:8px"><b>per $100,000</b></div>` :
+                        town_data["2024_homestead"] == " " ? `<h1>${town_geo["TOWNNAMEMC"]}</h1>${town_data["Town"]} has not yet appoved a budget.` :
+                            `<div><h1>${town_geo["TOWNNAMEMC"]}</h1>
                 The tax rate in ${town_geo["TOWNNAMEMC"]} <b>${town_data["homestead_change"].substring(0, 1) == "-" ? `<span style="color:green">decreased ${town_data["homestead_change"].substring(1)}</span>` : `<span style="color:red">increased ${town_data["homestead_change"]}</span>`}</b> between 2023 and 2024.
                 <br><table>
                     <tr>
@@ -251,35 +261,36 @@
                     </table></div>
                     
                 `)
-                d3.select("#return_button").on("click", function(event) {
-                    map.flyTo([43.99668264203332, -72.44535781827701], 8, {
-                        duration:.1
+                    d3.select("#return_button").on("click", function (event) {
+                        map.flyTo([43.99668264203332, -72.44535781827701], 8, {
+                            duration: .1
+                        })
+                        panel.html(starter_text)
                     })
-                    panel.html(starter_text)})
-            }).on("mouseover", function (e) {
-                var layer = e.layer;
-                if (selection != layer.feature.properties["TOWNNAMEMC"]) {
-                    layer.setStyle({
-                    weight: 3,
-                    color: "white"
+                }).on("mouseover", function (e) {
+                    var layer = e.layer;
+                    if (selection != layer.feature.properties["TOWNNAMEMC"]) {
+                        layer.setStyle({
+                            weight: 3,
+                            color: "white"
+                        })
+                    }
+
+
+                }).on("mouseout", function (e) {
+                    if (selection != e.layer.feature.properties["TOWNNAMEMC"]) {
+                        layer.resetStyle(e.layer)
+                    }
                 })
-                }
-                
-               
-            }).on("mouseout", function (e) {
-                if (selection != e.layer.feature.properties["TOWNNAMEMC"]) {
-                layer.resetStyle(e.layer)
-                }
-            })
 
-        }
+            }
 
-        
+
             var difference_layer = L.geoJSON(districts, {
                 style: function (geoJsonFeature) {
                     const town_data = data.filter(d => d.Town == geoJsonFeature.properties["TOWNNAMEMC"])[0]
                     return {
-                       
+
                         fillColor: town_data["2024 Reappraisal"] == "Yes" ? "black" : diff_color(parseFloat(town_data["homestead_change"])),
                         fillOpacity: 1,
                         stroke: true,
@@ -292,19 +303,45 @@
                 let town_data = data.filter(d => d.Town == town_name)[0]
                 return town_data["District Rate"] == "" ? `<h3>${town_name}</h3>
                 ${town_data["Town"]} has not yet approved a budget.`
- : 
- town_data["2024 Reappraisal"] == "Yes" ? `<h3>${town_name}</h3>
-                ${town_data["Town"]} underwent a reappraisal in 2024, as such the numbers are not comparable.`: `<h3>${town_name}</h3><b>% difference between 2023 and 2024:</b> ${town_data["homestead_change"]}`
-            }, 
-        {
-           className: "tooltip",
-          
-        }).addTo(map)
+                    :
+                    town_data["2024 Reappraisal"] == "Yes" ? `<h3>${town_name}</h3>
+                ${town_data["Town"]} underwent a reappraisal in 2024, as such the numbers are not comparable.` : `<h3>${town_name}</h3><b>% difference between 2023 and 2024:</b> ${town_data["homestead_change"]}`
+            },
+                {
+                    className: "tooltip",
+
+                }).addTo(map)
 
 
             onclick(difference_layer)
 
-        
+            var legend = L.control({ position: 'bottomright' });
+
+            legend.onAdd = function (map) {
+
+                var div = L.DomUtil.create('div', 'info legend'),
+                    grades = [-30, 0, 30],
+                    labels = [];
+
+                console.log("hellur")
+
+
+                div.innerHTML += "<b>Change in tax rates</b><br>"
+                // loop through our density intervals and generate a label with a colored square for each interval
+                div.innerHTML += `<div id="gradient"></div><div id="gradient-text"><div>-30%</div><div>0%</div><div>30%</div></div>`
+                /*for (var i = 0; i < grades.length; i++) {
+                    div.innerHTML +=
+                        '<i style="background:' + diff_color(grades[i]) + '"></i> ' +
+                        (grades[i] - 1) + (grades[i + 1] ? '"&ndash;' + (grades[i + 1] - 1) + '"<br>' : '"+');
+                }*/
+
+                div.innerHTML += `
+    <i style="background:black"></i> Not comparable`
+
+                return div;
+            };
+
+            legend.addTo(map);
 
 
         }
@@ -315,19 +352,20 @@
         <div id="panel"></div>
         <div id="leaflet" style="min-height: 500px; max-height: 800px; width: 100%"></div>
     </div>
-    <div class="caption">Data Source: <a href="https://tax.vermont.gov/property/education-property-tax-rates">VT Department of Taxes<a> | &copy; <a
-                href="https://stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a
-                href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a
-                href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> | <i>Corey Dockser /
-                Vermont Public </i>
-            </div>
+    <div class="caption">Data Source: <a href="https://tax.vermont.gov/property/education-property-tax-rates">VT
+            Department of Taxes<a> | &copy; <a href="https://stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a
+                    href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a
+                    href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> | <i>Corey Dockser
+                    /
+                    Vermont Public </i>
+    </div>
 
-            <script>
-                window.onload = function () {
-                    pymChild = new pym.Child({});
-                    pym.Child({ polling: 500 });
-                };
-            </script>
+    <script>
+        window.onload = function () {
+            pymChild = new pym.Child({});
+            pym.Child({ polling: 500 });
+        };
+    </script>
 </body>
 
 </html>
