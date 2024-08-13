@@ -258,7 +258,7 @@
                         color: "white"
                     })
 
-                    panel.html(town_data["2024 Reappraisal"] == "Yes" ?
+                    panel.html(town_geo["TOWNNAME"] == "PUTNEY" ? `<h1>${town_geo["TOWNNAMEMC"]}</h1>Preliminary tax data for Putney was not available.`: town_data["2024 Reappraisal"] == "Yes" ?
                         `<h1>${town_geo["TOWNNAMEMC"]}</h1>
                         The taxes paid by the median home in ${town_data["Town"]} <b>${town_data["Median Tax Increase"].substring(0, 1) == "-" ? `<span style="color:green">decreased ${town_data["Median Tax Increase"].substring(1)}</span>` : `<span style="color:red">increased ${town_data["Median Tax Increase"]}</span>`}</b> from 2023 to 2024.
                         <h3>2024</h3>${town_data["2024_homestead"]}<div class="per" style="margin-top:8px"><b>per $100 of property value</b></div>` :
@@ -326,6 +326,7 @@
             },
                 {
                     className: "tooltip",
+                    opacity: 1,
 
                 }).addTo(map)
 
@@ -354,7 +355,7 @@
                 }*/
 
                 div.innerHTML += `
-    <i style="background:black"></i> No budget`
+    <i style="background:black"></i> Data not available`
 
                 div.innerHTML += `<br><i id="reappraised"></i><span id="reappraisedtext">Reappraised in 2024</span>`
 
