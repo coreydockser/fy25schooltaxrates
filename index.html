@@ -226,7 +226,11 @@
 
             function onclick(layer) {
                 layer.on("click", function (event) {
-
+                    if (selection == event.layer.feature.properties["TOWNNAMEMC"]) {
+                        layer.resetStyle()
+                        selection = "Starter"
+                        place_starter_text()
+                    } else {
                     let panel = d3.select("#panel")
                     let town_geo = event.layer.feature.properties
                     selection = town_geo["TOWNNAMEMC"]
@@ -261,12 +265,7 @@
                     </table></div>
                     
                 `)
-                    d3.select("#return_button").on("click", function (event) {
-                        map.flyTo([43.99668264203332, -72.44535781827701], 8, {
-                            duration: .1
-                        })
-                        panel.html(starter_text)
-                    })
+                }
                 }).on("mouseover", function (e) {
                     var layer = e.layer;
                     if (selection != layer.feature.properties["TOWNNAMEMC"]) {
