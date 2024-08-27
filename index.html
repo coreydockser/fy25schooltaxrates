@@ -209,12 +209,14 @@
         async function createMap() {
             const data = await d3.csv("data/FY24_25_tax_rates.csv")
             const districts_data = await d3.json("data/merged_villages.json")
-            const districts = districts_data.features
+            const districts = districts_data.features.sort(function(x, y) {
+                return d3.ascending(x.properties['2024 Reappraisal'],y.properties['2024 Reappraisal'])
+            }) 
             console.log(districts)
             console.log(data)
             place_starter_text()
             const map = L.map("leaflet", {
-                maxBounds: [[45.6827279959561, -74.60342861162103], [[42.13963625461821, -70.15557545763363]]],
+                maxBounds: [[46.6827279959561, -75.60342861162103], [[41.13963625461821, -69.15557545763363]]],
                 minZoom: 7,
                 maxBoundsViscosity: 1,
                 zoomSnap: .5,
@@ -258,13 +260,13 @@
                         color: "white"
                     })
 
-                    panel.html(town_geo["TOWNNAME"] == "PUTNEY" ? `<h1>${town_geo["TOWNNAMEMC"]}</h1>Preliminary tax data for Putney was not available.`: town_data["2024 Reappraisal"] == "Yes" ?
+                    panel.html(town_data["2024 Reappraisal"] == "Yes" ?
                         `<h1>${town_geo["TOWNNAMEMC"]}</h1>
-                        The taxes paid by the median home in ${town_data["Town"]} <b>${town_data["Median Tax Increase"].substring(0, 1) == "-" ? `<span style="color:green">decreased ${town_data["Median Tax Increase"].substring(1)}</span>` : `<span style="color:red">increased ${town_data["Median Tax Increase"]}</span>`}</b> from FY2024 to FY2025.
+                        The homestead taxes paid by the median home in ${town_data["Town"]} <b>${town_data["Median Tax Increase"].substring(0, 1) == "-" ? `<span style="color:green">decreased ${town_data["Median Tax Increase"].substring(1)}</span>` : `<span style="color:red">increased ${town_data["Median Tax Increase"]}</span>`}</b> from FY2024 to FY2025.
                         <h3>2024</h3>${town_data["2024_homestead"]}<div class="per" style="margin-top:8px"><b>per $100 of property value</b></div>` :
                         town_data["2024_homestead"] == " " ? `<h1>${town_geo["TOWNNAMEMC"]}</h1>${town_data["Town"]} has not yet appoved a budget.` :
                             `<div><h1>${town_geo["TOWNNAMEMC"]}</h1>
-                The tax rate in ${town_geo["TOWNNAMEMC"]} <b>${town_data["homestead_change"].substring(0, 1) == "-" ? `<span style="color:green">decreased ${town_data["homestead_change"].substring(1)}</span>` : `<span style="color:red">increased ${town_data["homestead_change"]}</span>`}</b> between FY2024 and FY2025.
+                The homestead tax rate in ${town_geo["TOWNNAMEMC"]} <b>${town_data["homestead_change"].substring(0, 1) == "-" ? `<span style="color:green">decreased ${town_data["homestead_change"].substring(1)}</span>` : `<span style="color:red">increased ${town_data["homestead_change"]}</span>`}</b> between FY2024 and FY2025.
                 <br><table>
                     <tr>
                         <th><h3>FY2024</h3></th>
@@ -322,7 +324,7 @@
                     :
                     town_data["2024 Reappraisal"] == "Yes" ? `<h3>${town_name}</h3>
                 <i>Reappraised in 2024</i>
-                <br><b>% difference in tax on median home between FY24 and FY25:</b> ${town_data["Median Tax Increase"]}` : `<h3>${town_name}</h3><b>% difference between FY24 and FY25:</b> ${town_data["homestead_change"]}`
+                <br><b>% difference in homestead tax on median home between FY24 and FY25:</b> ${town_data["Median Tax Increase"]}` : `<h3>${town_name}</h3><b>% difference in homestead tax between FY24 and FY25:</b> ${town_data["homestead_change"]}`
             },
                 {
                     className: "tooltip",
@@ -342,7 +344,6 @@
                     grades = [-30, 0, 30],
                     labels = [];
 
-                console.log("hellur")
 
 
                 div.innerHTML += "<b>Change in tax rates</b><br>"
